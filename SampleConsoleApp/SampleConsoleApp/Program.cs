@@ -11,6 +11,19 @@ namespace SampleConsoleApp
         static void Main(string[] args)
         {
             Console.WriteLine("Sample Code");
+
+
+
+            
         }
     }
+
+    public class Student
+    {
+        public int ID { get; set; }
+        public string StudentName { get; set; }
+        public string Grade { get; set; }
+    }
+
+   
 }
