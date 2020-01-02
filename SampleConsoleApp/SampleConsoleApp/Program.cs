@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Reflection;
+using System.ComponentModel.DataAnnotations;
 
 namespace SampleConsoleApp
 {
@@ -12,26 +14,26 @@ namespace SampleConsoleApp
         {
             Console.WriteLine("Sample Code");
 
-            List<Student> studentsList1 = new List<Student>()
+            ICollection<Student> studentsList1 = new List<Student>()
             {
-                new Student(){ID = 1, StudentName = "Nandha", Grade="8th"},
-                new Student(){ID = 2, StudentName = "kumar", Grade="9th"},
-                new Student(){ID = 3, StudentName = "anu", Grade="10th"},
-                new Student(){ID = 4, StudentName = "Prasanna", Grade="11th"}
+                new Student(){ISBN = "1", StudentName = "Nandha", Grade="8th"},
+                new Student(){ISBN = "2", StudentName = "kumar", Grade="9th"},
+                new Student(){ISBN = "3", StudentName = "anu", Grade="10th"},
+                new Student(){ISBN = "4", StudentName = "Prasanna", Grade="11th"}
             };
 
-            List<Student> studentsList2 = new List<Student>()
+            ICollection<Student> studentsList2 = new List<Student>()
             {
                 //deleted ID 1, added ID 5.
-                new Student(){ID = 2, StudentName = "kumar", Grade="12th"},
-                new Student(){ID = 3, StudentName = "anu", Grade="10th"},
-                new Student(){ID = 4, StudentName = "Prasanna", Grade="11th"},
-                new Student(){ID = 5, StudentName = "Prasanna", Grade="11th"}
+                new Student(){ISBN = "2", StudentName = "kumar", Grade="12th"},
+                new Student(){ISBN = "3", StudentName = "anu", Grade="10th"},
+                new Student(){ISBN = "4", StudentName = "Prasanna", Grade="11th"},
+                new Student(){ISBN = "5", StudentName = "Prasanna", Grade="11th"}
             };
 
-            List<Student> studentsUpdates = GetUpdates(studentsList1, studentsList2);
-            List<Student> studentsInserts = GetInserts(studentsList1, studentsList2);
-            List<Student> studentsdeletes = GetDeletes(studentsList1, studentsList2);
+            ICollection<Student> studentsUpdates = CompareList<Student>.GetUpdates(studentsList1, studentsList2);
+            ICollection<Student> studentsInserts = CompareList<Student>.GetInserts(studentsList1, studentsList2);
+            ICollection<Student> studentsdeletes = CompareList<Student>.GetDeletes(studentsList1, studentsList2);
 
             Console.WriteLine("Updates");
             DisplayStudents(studentsUpdates);
@@ -45,53 +47,66 @@ namespace SampleConsoleApp
 
         }
 
-        private static void DisplayStudents(List<Student> students)
+        private static void DisplayStudents(ICollection<Student> listItems)
         {
-            foreach (var item in students)
+            foreach (var item in listItems)
             {
-                Console.WriteLine($"{item.ID}--{item.StudentName}--{item.Grade}");
+                Console.WriteLine($"{item.ISBN}--{item.StudentName}--{item.Grade}");
 
             }
         }
 
-        private static List<Student> GetDeletes(List<Student> studentsList1, List<Student> studentsList2)
-        {
-            var studentsDeletes = from _list1 in studentsList1
-                                  join _list2 in studentsList2 on _list1.ID equals _list2.ID into gj
-                                  from subset in gj.DefaultIfEmpty()
-                                  select _list1;
-
-            return studentsDeletes.ToList<Student>();
-        }
-
-        private static List<Student> GetInserts(List<Student> studentsList1, List<Student> studentsList2)
-        {
-            var studentsInserts = from _list2 in studentsList2
-                                  join _list1 in studentsList1 on _list2.ID equals _list1.ID into gj
-                                  from subset in gj.DefaultIfEmpty()
-                                  select _list2;
-
-            return studentsInserts.ToList<Student>();
-        }
-
-        private static List<Student> GetUpdates(List<Student> studentsList1, List<Student> studentsList2)
-        {
-            var studentsUpdates = from _list1 in studentsList1
-                                  join _list2 in studentsList2 on _list1.ID equals _list2.ID
-                                  select _list1;
-
-            return studentsUpdates.ToList<Student>();
-
-
-        }
+       
     }
 
     public class Student
     {
-        public int ID { get; set; }
+        [Key]
+        public string ISBN { get; set; }
         public string StudentName { get; set; }
         public string Grade { get; set; }
     }
 
-   
+    public class EntityPKComparer<T> : IEqualityComparer<T>
+    {
+        private PropertyInfo Property { get; set; }
+
+        public EntityPKComparer()
+        {
+            Property = typeof(T).GetProperties()
+                 .FirstOrDefault(p => p.GetCustomAttributes(false)
+                     .Any(a => a.GetType() == typeof(KeyAttribute)));
+        }
+
+        public bool Equals(T x, T y)
+        {
+            return (Property.GetValue(x)).Equals(Property.GetValue(y)) ? true : false;
+        }
+
+        public int GetHashCode(T obj)
+        {
+            object hashCode = Property.GetValue(obj);
+            return hashCode.GetHashCode();
+        }
+    }
+
+    public static class CompareList<T>
+    {
+        public static ICollection<T> GetDeletes(ICollection<T> list1, ICollection<T> list2)
+        {
+            return list1.Except(list2, new EntityPKComparer<T>()).ToList();
+        }
+
+        public static ICollection<T> GetInserts(ICollection<T> list1, ICollection<T> list2)
+        {
+            return list2.Except(list1, new EntityPKComparer<T>()).ToList();
+        }
+
+        public static ICollection<T> GetUpdates(ICollection<T> list1, ICollection<T> list2)
+        {
+            return list2.Intersect(list1, new EntityPKComparer<T>()).ToList();
+        }
+    }
+
+
 }
