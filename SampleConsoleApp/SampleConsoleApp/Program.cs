@@ -31,9 +31,9 @@ namespace SampleConsoleApp
                 new Student(){ISBN = "5", StudentName = "Prasanna", Grade="11th"}
             };
 
-            ICollection<Student> studentsUpdates = CompareList<Student>.GetUpdates(studentsList1, studentsList2);
-            ICollection<Student> studentsInserts = CompareList<Student>.GetInserts(studentsList1, studentsList2);
-            ICollection<Student> studentsdeletes = CompareList<Student>.GetDeletes(studentsList1, studentsList2);
+            ICollection<Student> studentsUpdates = CompareCollection<Student>.GetUpdates(studentsList1, studentsList2);
+            ICollection<Student> studentsInserts = CompareCollection<Student>.GetDifferences(studentsList1, studentsList2);
+            ICollection<Student> studentsdeletes = CompareCollection<Student>.GetDifferences(studentsList2, studentsList1);
 
             Console.WriteLine("Updates");
             DisplayStudents(studentsUpdates);
@@ -67,11 +67,11 @@ namespace SampleConsoleApp
         public string Grade { get; set; }
     }
 
-    public class EntityPKComparer<T> : IEqualityComparer<T>
+    public class EntityComparer<T> : IEqualityComparer<T>
     {
         private PropertyInfo Property { get; set; }
 
-        public EntityPKComparer()
+        public EntityComparer()
         {
             Property = typeof(T).GetProperties()
                  .FirstOrDefault(p => p.GetCustomAttributes(false)
@@ -90,21 +90,16 @@ namespace SampleConsoleApp
         }
     }
 
-    public static class CompareList<T>
+    public static class CompareCollection<T>
     {
-        public static ICollection<T> GetDeletes(ICollection<T> list1, ICollection<T> list2)
+        public static ICollection<T> GetDifferences(ICollection<T> _left, ICollection<T> _right)
         {
-            return list1.Except(list2, new EntityPKComparer<T>()).ToList();
+            return _right.Except(_left, new EntityComparer<T>()).ToList();
         }
 
-        public static ICollection<T> GetInserts(ICollection<T> list1, ICollection<T> list2)
+        public static ICollection<T> GetUpdates(ICollection<T> _left, ICollection<T> _right)
         {
-            return list2.Except(list1, new EntityPKComparer<T>()).ToList();
-        }
-
-        public static ICollection<T> GetUpdates(ICollection<T> list1, ICollection<T> list2)
-        {
-            return list2.Intersect(list1, new EntityPKComparer<T>()).ToList();
+            return _right.Intersect(_left, new EntityComparer<T>()).ToList();
         }
     }
 
