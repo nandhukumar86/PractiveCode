@@ -10,6 +10,7 @@ namespace SaveClipboardImages
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("All your images will be stored under D:/Snapshots/");
             Console.WriteLine("Enter the Title: ");
             string title = Console.ReadLine();
 
@@ -24,13 +25,15 @@ namespace SaveClipboardImages
 
             if(t.ThreadState != ThreadState.Running)
             {
-                Console.WriteLine($"All your images are stored under D:/{title}");
+                Console.WriteLine($"All your images will be stored under D:/Snapshots/{title}");
                 Thread.Sleep(2000);
             }
             else
             {
                 Console.WriteLine("Snapshot saver is still running!!");
             }
+
+
         }
 
         private static void SaveImagesFromClipboard(string title)
@@ -41,7 +44,7 @@ namespace SaveClipboardImages
                 {
                     var datetime = DateTime.Now.ToString("yyyyMMdd_HHmmss");
                     BitmapSource image = Clipboard.GetImage();
-                    using (var fileStream = new FileStream($"D:/{title}_{datetime}.png", FileMode.Create))
+                    using (var fileStream = new FileStream($"D:/Snapshots/{title}_{datetime}.png", FileMode.Create))
                     {
                         BitmapEncoder encoder = new PngBitmapEncoder();
                         encoder.Frames.Add(BitmapFrame.Create(image));
@@ -51,5 +54,7 @@ namespace SaveClipboardImages
                 }
             }
         }
+
+
     }
 }
