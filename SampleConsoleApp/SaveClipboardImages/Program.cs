@@ -10,7 +10,7 @@ namespace SaveClipboardImages
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("All your images will be stored under D:/Snapshots/");
+            Console.WriteLine("All your images will be stored under C:/Snapshots/");
             Console.WriteLine("Enter the Title: ");
             string title = Console.ReadLine();
 
