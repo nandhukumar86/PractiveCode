@@ -25,7 +25,7 @@ namespace SaveClipboardImages
 
             if(t.ThreadState != ThreadState.Running)
             {
-                Console.WriteLine($"All your images will be stored under D:/Snapshots/{title}");
+                Console.WriteLine($"All your images will be stored under C:/Snapshots/{title}");
                 Thread.Sleep(2000);
             }
             else
@@ -44,7 +44,7 @@ namespace SaveClipboardImages
                 {
                     var datetime = DateTime.Now.ToString("yyyyMMdd_HHmmss");
                     BitmapSource image = Clipboard.GetImage();
-                    using (var fileStream = new FileStream($"D:/Snapshots/{title}_{datetime}.png", FileMode.Create))
+                    using (var fileStream = new FileStream($"C:/Snapshots/{title}_{datetime}.png", FileMode.Create))
                     {
                         BitmapEncoder encoder = new PngBitmapEncoder();
                         encoder.Frames.Add(BitmapFrame.Create(image));
